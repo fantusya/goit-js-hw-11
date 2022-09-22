@@ -1,69 +1,84 @@
 import './css/styles.css';
-import fetchImages from "./js/fetchImages";
+import ImagesApiService from "./js/images-api";
+import makeImageMarkup from "./js/img-markup";
 
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-
 const form = document.querySelector('.search-form');
-const galleryContainer = document.querySelector('.gallery')
-form.addEventListener('submit', onFormSubmit);
+const galleryContainer = document.querySelector('.gallery');
+const sentinel = document.querySelector('#sentinel');
 
-// const url2 = 'https://pixabay.com/api/?key=30081101-40180903bea68f83c1da8999a&q=yellow+flowers&image_type=horizontal&orientation=horizontal&safesearch=true'
+const imagesApiService = new ImagesApiService();
+let lightbox = new SimpleLightbox('.gallery a', { captionDelay: 250 });
+
+form.addEventListener('submit', onFormSubmit);
 
 function onFormSubmit(e) {
     e.preventDefault();
     
-    clearHtml();
+    imagesApiService.query = e.currentTarget.elements.query.value;
 
-    let currentValue = e.currentTarget.searchQuery.value;
+    if (imagesApiService.query.trim() === '') {
+        return Notify.warning('Please enter a keyword to search!');;
+    }
 
-    fetchImages(currentValue)
-        .then(({total , hits, totalHits}) => {
+    imagesApiService.resetPage();
+    clearGalleryContainer();
+
+    imagesApiService
+        .fetchImages()
+        .then(({ total, hits, totalHits }) => {
             if (total === 0) {
-                Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-                return;
+               return Notify.failure('Sorry, there are no images matching your search query. Please try again.'); 
             }
+
             Notify.success(`Hooray! We found ${totalHits} images.`);
-            makeImageMarkup(hits);
-        });
+
+            insertingImgMarkup(hits);
+
+            lightbox.refresh();
+
+            imagesApiService.incrementPage();
+        })
 }
 
-function makeImageMarkup(images) {
-    const imagesMarkup = images.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
-        `<a class="large-photo" href="${largeImageURL}">
-            <div class="photo-card">
-                <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-                <div class="info">
-                    <p class="info-item">
-                        <b>Likes</b>
-                        <span class="number">${likes}</span>
-                    </p>
-                    <p class="info-item">
-                        <b>Views</b>
-                        <span class="number">${views}</span>
-                    </p>
-                    <p class="info-item">
-                        <b>Comments</b>
-                        <span class="number">${comments}</span>
-                    </p>
-                    <p class="info-item">
-                        <b>Downloads</b>
-                        <span class="number">${downloads}</span>
-                    </p>
-                </div>
-            </div>
-        </a>`
-    ).join('');
-
-    galleryContainer.insertAdjacentHTML('beforeend', imagesMarkup);
-
-    new SimpleLightbox('.gallery a', {
-    captionDelay: 250
-})
+function insertingImgMarkup(images) {
+    galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
 }
 
-function clearHtml() {
+function clearGalleryContainer() {
     galleryContainer.innerHTML = '';
 }
+
+const onEntry = entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && imagesApiService.query !== '') {
+      imagesApiService
+        .fetchImages()
+          .then(({ hits }) => {
+              if (hits.length === 0) {
+                Notify.warning('We`re sorry, but you`ve reached the end of search results.')
+            }
+              insertingImgMarkup(hits);
+              
+            //   const { height: cardHeight } = document
+            //     .querySelector(".gallery")
+            //     .firstElementChild.getBoundingClientRect();
+
+            //     window.scrollBy({
+            //     top: cardHeight * 2,
+            //     behavior: "smooth",
+            //     });
+            imagesApiService.incrementPage();
+        })
+    }
+  });
+};
+
+const observer = new IntersectionObserver(onEntry, {
+  rootMargin: '150px',
+});
+
+observer.observe(sentinel);
