@@ -1,11 +1,13 @@
 import './css/styles.css';
 import ImagesApiService from "./js/images-api";
 import makeImageMarkup from "./js/img-markup";
+import calculateBodyPaddingTop from "./js/body-padding";
 
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
+const formContainer = document.querySelector('.form-container');
 const form = document.querySelector('.search-form');
 const galleryContainer = document.querySelector('.gallery');
 const sentinel = document.querySelector('#sentinel');
@@ -15,13 +17,15 @@ let lightbox = new SimpleLightbox('.gallery a', { captionDelay: 250 });
 
 form.addEventListener('submit', onFormSubmit);
 
-function onFormSubmit(e) {
+calculateBodyPaddingTop(formContainer);
+
+async function onFormSubmit(e) {
     e.preventDefault();
     
     imagesApiService.query = e.currentTarget.elements.query.value;
 
     if (imagesApiService.query.trim() === '') {
-        return Notify.warning('Please enter a keyword to search!');;
+      return Notify.warning('Please enter a keyword to search!');;
     }
 
     imagesApiService.resetPage();
@@ -45,11 +49,11 @@ function onFormSubmit(e) {
 }
 
 function insertingImgMarkup(images) {
-    galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
+  galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
 }
 
 function clearGalleryContainer() {
-    galleryContainer.innerHTML = '';
+  galleryContainer.innerHTML = '';
 }
 
 const onEntry = entries => {
@@ -61,16 +65,8 @@ const onEntry = entries => {
               if (hits.length === 0) {
                 Notify.warning('We`re sorry, but you`ve reached the end of search results.')
             }
-              insertingImgMarkup(hits);
-              
-            //   const { height: cardHeight } = document
-            //     .querySelector(".gallery")
-            //     .firstElementChild.getBoundingClientRect();
 
-            //     window.scrollBy({
-            //     top: cardHeight * 2,
-            //     behavior: "smooth",
-            //     });
+            insertingImgMarkup(hits);
             imagesApiService.incrementPage();
         })
     }

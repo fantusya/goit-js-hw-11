@@ -6,7 +6,7 @@ export default class ImagesApiService {
         this.page = 1;
     }
 
-    fetchImages() {
+    async fetchImages() {
         const searchParams = new URLSearchParams({
             q: this.searchQuery,
             image_type: "photo",
@@ -18,8 +18,11 @@ export default class ImagesApiService {
 
         const url = `${BASE_URL}&${searchParams}`;
 
-        return fetch(url)
-            .then(response => response.json())
+        // return fetch(url)
+        //     .then(response => response.json());
+        
+        const response = await fetch(url);
+        return await response.json();
     }
     
     incrementPage() {
