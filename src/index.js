@@ -19,7 +19,7 @@ form.addEventListener('submit', onFormSubmit);
 
 calculateBodyPaddingTop(formContainer);
 
-async function onFormSubmit(e) {
+function onFormSubmit(e) {
     e.preventDefault();
     
     imagesApiService.query = e.currentTarget.elements.query.value;
@@ -44,16 +44,9 @@ async function onFormSubmit(e) {
 
             lightbox.refresh();
 
-            imagesApiService.incrementPage();
+          imagesApiService.incrementPage();
+          
         })
-}
-
-function insertingImgMarkup(images) {
-  galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
-}
-
-function clearGalleryContainer() {
-  galleryContainer.innerHTML = '';
 }
 
 const onEntry = entries => {
@@ -78,3 +71,11 @@ const observer = new IntersectionObserver(onEntry, {
 });
 
 observer.observe(sentinel);
+
+function clearGalleryContainer() {
+  galleryContainer.innerHTML = '';
+}
+
+function insertingImgMarkup(images) {
+  galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
+}
