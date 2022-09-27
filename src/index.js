@@ -48,7 +48,7 @@ function onFormSubmit(e) {
 
           imagesApiService.incrementPage();
         
-          // infiniteScroll();
+          infiniteScroll();
       })
 }
 
