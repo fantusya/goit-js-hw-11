@@ -15,6 +15,8 @@ const sentinel = document.querySelector('#sentinel');
 const imagesApiService = new ImagesApiService();
 let lightbox = new SimpleLightbox('.gallery a', { captionDelay: 250 });
 
+let lastCard;
+
 form.addEventListener('submit', onFormSubmit);
 
 calculateBodyPaddingTop(formContainer);
@@ -44,9 +46,9 @@ function onFormSubmit(e) {
 
           lightbox.refresh();
 
-        imagesApiService.incrementPage();
-
-        infiniteScroll();
+          imagesApiService.incrementPage();
+        
+          // infiniteScroll();
       })
 }
 
@@ -67,13 +69,24 @@ function infiniteScroll() {
       }
     })
   };
+
   const observer = new IntersectionObserver(onEntry, {
-    rootMargin: '100px',
+    rootMargin: '50px',
   });
 
-  observer.observe(sentinel);
+  observer.observe(lastCard);
 }
 
+function clearGalleryContainer() {
+  galleryContainer.innerHTML = '';
+}
+
+function insertingImgMarkup(images) {
+  galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
+
+  lastCard = galleryContainer.lastElementChild;
+  // console.log(lastCard);
+}
 
 // const onEntry = entries => {
 //   console.log(entries);
@@ -97,11 +110,3 @@ function infiniteScroll() {
 // });
 
 // observer.observe(sentinel);
-
-function clearGalleryContainer() {
-  galleryContainer.innerHTML = '';
-}
-
-function insertingImgMarkup(images) {
-  galleryContainer.insertAdjacentHTML('beforeend', makeImageMarkup(images));
-}
