@@ -26,6 +26,10 @@ export default class ImagesApiService {
         } catch (error) {
             console.error(error);
         }
+
+        // debugger;
+        // return fetch(url)
+        //     .then(response => response.json())
     }
     
     incrementPage() {
